@@ -52,10 +52,17 @@
   document.title = `Meeting · ${roomId}`;
 
   // ---------- Toasts ----------
-  function toast(message, ms = 3500) {
+  function toast(message, ms = 3500, link) {
     const el = document.createElement('div');
     el.className = 'toast';
     el.textContent = message;
+    if (link) {
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.target = '_blank';
+      a.textContent = link.label;
+      el.append(' ', a);
+    }
     $('toasts').appendChild(el);
     setTimeout(() => el.classList.add('out'), ms);
     setTimeout(() => el.remove(), ms + 400);
@@ -235,6 +242,10 @@
     if (state.recorder) {
       const file = await stopRecording();
       if (file) note = `Your recording was saved as ${file}.`;
+      if (state.lastRecordingId) {
+        $('studio-link').href = `/studio#${state.lastRecordingId}`;
+        $('studio-link').hidden = false;
+      }
     }
     socket?.disconnect();
     for (const id of [...peers.keys()]) removePeer(id, false);
@@ -583,7 +594,14 @@
     let file = null;
     try {
       file = await recorder.stop();
-      toast(`Recording saved to your Downloads: ${file}`, 6000);
+      let studio;
+      try {
+        state.lastRecordingId = await RecordingStore.save({ name: file, blob: recorder.lastBlob });
+        studio = { href: `/studio#${state.lastRecordingId}`, label: 'Make shorts →' };
+      } catch (err) {
+        console.warn('Could not keep recording for Studio', err);
+      }
+      toast(`Recording saved to your Downloads: ${file}`, 9000, studio);
     } catch (err) {
       console.error(err);
       toast(`Recording failed: ${err.message}`);

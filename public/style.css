@@ -216,6 +216,7 @@ svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
   max-width: 360px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: opacity 0.4s, transform 0.4s;
 }
 .toast.out { opacity: 0; transform: translateY(8px); }
+.toast a { color: var(--primary-strong); font-weight: 600; white-space: nowrap; }
 
 /* ---------- Small screens ---------- */
 @media (max-width: 760px) {
@@ -232,3 +233,6 @@ svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
   .grid.presenting .tile:not(.featured) { grid-column: auto; grid-row: 2; }
   .prejoin { gap: 24px; }
 }
+.header-right { display: flex; align-items: center; gap: 20px; }
+.studio-nav { color: #5f6368; font-weight: 500; padding: 8px 14px; border-radius: 18px; border: 1px solid #dadce0; }
+.studio-nav:hover { background: #f1f3f4; }

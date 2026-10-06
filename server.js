@@ -5,12 +5,14 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const { Server } = require('socket.io');
+const clips = require('./clips');
 
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_PEERS_PER_ROOM = Number(process.env.MAX_PEERS) || 8;
 const ROOM_ID_RE = /^[a-z0-9-]{3,64}$/i;
 
 const app = express();
+app.set('trust proxy', 1); // behind Railway's proxy; needed for per-IP rate limits
 
 // Serve over HTTPS when a cert is provided. Browsers only allow camera/mic
 // access on secure origins, so this is needed when joining from other devices
@@ -50,8 +52,15 @@ function iceServers() {
 const rooms = new Map();
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/vendor/mediabunny.mjs', (req, res) =>
+  res.type('text/javascript').sendFile(path.join(__dirname, 'node_modules/mediabunny/dist/bundles/mediabunny.min.mjs'))
+);
 
 app.get('/health', (req, res) => res.json({ ok: true, rooms: rooms.size }));
+
+clips.registerRoutes(app, express);
+
+app.get('/studio', (req, res) => res.sendFile(path.join(__dirname, 'public', 'studio.html')));
 
 app.get('/new', (req, res) => res.redirect(`/${makeRoomId()}`));
 

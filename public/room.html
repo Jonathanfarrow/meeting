@@ -77,6 +77,7 @@
       <p class="muted" id="left-note"></p>
       <div class="left-actions">
         <button class="btn text" onclick="location.reload()">Rejoin</button>
+        <a class="btn text" id="studio-link" href="/studio" target="_blank" hidden>Edit recording in Studio</a>
         <a class="btn primary" href="/">Return to home screen</a>
       </div>
     </section>
@@ -84,6 +85,7 @@
     <div id="toasts" class="toasts" aria-live="polite"></div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/storage.js"></script>
     <script src="/recorder.js"></script>
     <script src="/app.js"></script>
   </body>

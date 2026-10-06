@@ -102,6 +102,7 @@ class MeetingRecorder {
     this.chunks = [];
     if (ext === 'webm') blob = await MeetingRecorder.fixWebmDuration(blob, Date.now() - this.startedAt);
     MeetingRecorder.download(blob, name);
+    this.lastBlob = blob;
     return name;
   }
 

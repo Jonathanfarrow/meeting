@@ -1,19 +1,22 @@
 {
   "name": "meeting",
   "version": "1.0.0",
-  "description": "A Google Meet-style video meeting app with local recording",
+  "description": "A Google Meet-style video meeting app with local recording and an AI shorts studio",
   "main": "server.js",
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=20"
   },
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "express": "^4.22.3",
+    "mediabunny": "^1.61.3",
     "socket.io": "^4.8.4"
   }
 }

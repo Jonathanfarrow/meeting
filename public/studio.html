@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Studio</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/studio.css" />
+  </head>
+  <body class="studio-page">
+    <header class="studio-top">
+      <a class="brand dark" href="/">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <span>Studio</span>
+      </a>
+      <a class="btn text" href="/new" target="_blank">New meeting</a>
+    </header>
+
+    <!-- Choose a recording -->
+    <main id="pick" class="pick">
+      <h1>Turn your recording into shorts</h1>
+      <p class="muted">Magic Clips finds the best moments and makes captioned vertical videos. Magic Edit removes silences and filler words.</p>
+      <label id="drop" class="drop">
+        <input type="file" id="file" accept="video/*,audio/*" hidden />
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+        <strong>Drop a video here or click to choose</strong>
+        <span class="muted small">WebM, MP4 or MOV, including recordings from your meetings</span>
+      </label>
+      <section class="recent">
+        <h2>Recent meeting recordings</h2>
+        <ul id="recent"></ul>
+        <p id="recent-empty" class="muted small" hidden>None yet. Record a meeting and it will show up here.</p>
+      </section>
+      <p class="muted small privacy">Your video never leaves this computer: transcription and rendering run in your browser. Only the transcript text is sent to Claude, and only when you click Find clips.</p>
+    </main>
+
+    <!-- Workspace -->
+    <main id="workspace" class="workspace" hidden>
+      <section class="ws-main">
+        <div class="file-bar">
+          <strong id="file-name"></strong>
+          <span class="muted" id="file-duration"></span>
+          <button class="btn text small-btn" id="change-file">Change video</button>
+        </div>
+        <div class="player-wrap"><video id="player" controls playsinline></video></div>
+        <canvas id="timeline" class="timeline" title="Click to seek"></canvas>
+        <div class="legend small muted">
+          <span><i class="sw sw-cut"></i>Cut by Magic Edit</span>
+          <span><i class="sw sw-clip"></i>Clip</span>
+        </div>
+        <div id="transcript" class="transcript">
+          <p class="muted small">Click <strong>Transcribe</strong> to see the transcript. It's used for captions, filler-word removal and smarter clips.</p>
+        </div>
+      </section>
+
+      <aside class="ws-side">
+        <div class="card">
+          <h2>Transcript</h2>
+          <div class="row">
+            <label>Language
+              <select id="language">
+                <option value="english">English</option>
+                <option value="auto">Auto-detect</option>
+                <option value="spanish">Spanish</option>
+                <option value="french">French</option>
+                <option value="german">German</option>
+                <option value="portuguese">Portuguese</option>
+                <option value="italian">Italian</option>
+                <option value="dutch">Dutch</option>
+                <option value="hindi">Hindi</option>
+                <option value="japanese">Japanese</option>
+              </select>
+            </label>
+            <button id="transcribe" class="btn primary">Transcribe</button>
+          </div>
+          <div id="analyze-progress" class="progress" hidden>
+            <div class="bar"><span id="analyze-bar"></span></div>
+            <p class="small muted" id="analyze-status"></p>
+          </div>
+          <p class="small muted" id="transcribe-note">Runs on your computer. The first time, it downloads a ~80&nbsp;MB speech model.</p>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="clips" role="tab">Magic Clips</button>
+          <button class="tab" data-tab="edit" role="tab">Magic Edit</button>
+        </div>
+
+        <div id="tab-clips" class="card">
+          <div class="row">
+            <label>Clips
+              <select id="clip-count"><option>3</option><option selected>5</option><option>8</option></select>
+            </label>
+            <label>Length
+              <select id="clip-length">
+                <option value="15-30">15–30 s</option>
+                <option value="20-60" selected>20–60 s</option>
+                <option value="45-90">45–90 s</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label>Layout
+              <select id="clip-layout">
+                <option value="fit">Full frame + blurred background</option>
+                <option value="fill">Fill screen (crop sides)</option>
+              </select>
+            </label>
+          </div>
+          <label class="check"><input type="checkbox" id="clip-captions" checked /> Animated captions</label>
+          <label class="check"><input type="checkbox" id="clip-title" checked /> Title at the top</label>
+          <button id="find-clips" class="btn primary wide">Find clips</button>
+          <p class="small muted" id="ai-note"></p>
+          <div id="clips" class="clips"></div>
+        </div>
+
+        <div id="tab-edit" class="card" hidden>
+          <label class="check"><input type="checkbox" id="cut-silence" checked /> Remove silences longer than
+            <select id="silence-min">
+              <option value="0.5">0.5 s</option>
+              <option value="0.8" selected>0.8 s</option>
+              <option value="1.2">1.2 s</option>
+              <option value="2">2 s</option>
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" id="cut-fillers" checked /> Remove filler words (um, uh…)</label>
+          <label class="check"><input type="checkbox" id="edit-captions" /> Burn in captions</label>
+          <div id="edit-stats" class="stats"></div>
+          <label class="check"><input type="checkbox" id="preview-edit" /> Preview with cuts applied</label>
+          <button id="export-edit" class="btn primary wide">Export edited video</button>
+          <p class="small muted">Rendering happens on your computer. Long videos can take a few minutes; keep this tab open.</p>
+        </div>
+      </aside>
+    </main>
+
+    <div id="render-modal" class="modal" hidden>
+      <div class="modal-card">
+        <h2 id="render-title">Rendering…</h2>
+        <div id="render-stage" class="render-stage"></div>
+        <div class="bar"><span id="render-bar"></span></div>
+        <p class="small muted" id="render-status"></p>
+        <button id="render-cancel" class="btn text">Cancel</button>
+      </div>
+    </div>
+
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <script src="/storage.js"></script>
+    <script src="/recorder.js"></script>
+    <script src="/magic.js"></script>
+    <script type="module" src="/studio.js"></script>
+  </body>
+</html>
