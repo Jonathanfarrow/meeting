@@ -12,51 +12,52 @@ A Google Meet–style video meeting app you can run yourself. Start a meeting, s
 - Everyone in the call sees a **"… is recording"** banner while a recording is running
 - In-call **chat**, a **participants** list, mute indicators, and copy-link
 
-## Run it
+## Deploy to Railway
 
-Requires Node.js 18+.
+1. Push this repo to GitHub.
+2. In [Railway](https://railway.com), click **New Project → Deploy from GitHub repo** and pick this repo. Railway detects Node, runs `npm install`, and starts the app with `npm start`. Settings come from `railway.json`, including the `/health` health check.
+3. Open the service → **Settings → Networking → Generate Domain**. You'll get a URL like `https://meeting-production.up.railway.app`.
+4. Open that URL, click **New meeting**, and share the link. Railway serves HTTPS, so camera and mic work for everyone.
 
-```bash
-npm install
-npm start
-```
+Notes for Railway:
 
-Open <http://localhost:3000>, click **New meeting**, and share the link. To test on one machine, open the link in a second tab or browser window.
+- **Keep it at 1 replica.** Meeting rooms are kept in the server's memory, so everyone in a meeting must reach the same instance. `railway.json` sets `numReplicas: 1`.
+- **Redeploying ends ongoing meetings.** People have to rejoin with the same link. Recordings are saved in each person's browser, so they are not lost; anyone recording should stop and save before you redeploy.
+- **Bandwidth is low.** Video and audio go directly between participants' browsers, not through Railway. The server only passes small connection messages.
+- **Add a TURN server for reliability (recommended).** Without one, calls between people on strict networks (corporate Wi-Fi, some mobile carriers) can fail to connect. Railway can't host a TURN relay, because it needs UDP. Use a hosted one instead, such as [Metered](https://www.metered.ca/stun-turn), [Twilio](https://www.twilio.com/stun-turn) or [Cloudflare](https://developers.cloudflare.com/realtime/turn/). Then add these variables in the Railway **Variables** tab:
+
+  ```
+  TURN_URL=turn:your-turn-host:3478,turns:your-turn-host:443?transport=tcp
+  TURN_USERNAME=...
+  TURN_CREDENTIAL=...
+  ```
 
 ### Recording
 
 1. In a meeting, click the **record** button (the circle in the bottom bar).
-2. Click it again (now a square) to stop. The browser downloads the file right away.
+2. Click it again (now a square) to stop. Your browser downloads the file right away.
 3. Leaving the meeting while recording stops the recording and saves the file first.
 
-Chrome, Edge and Firefox save **WebM** (VP9/VP8 + Opus); it plays in Chrome, Firefox, VLC and most modern players. Safari saves **MP4**.
+Recording happens entirely in the browser of the person who clicked record. The file goes to *their* Downloads folder and never touches the server. Chrome, Edge and Firefox save **WebM** (VP9/VP8 + Opus), which plays in Chrome, Firefox, VLC and most modern players. Safari saves **MP4**.
 
 Keep the meeting tab open while recording. The recorder keeps running in a background tab, but browsers may lower the frame rate there.
 
-## Joining from other devices
+## Run locally (for development)
 
-Browsers only allow camera and microphone access on `localhost` or over **HTTPS**. To join from a phone or another computer:
-
-- **Quickest:** use a tunnel such as `npx localtunnel --port 3000` or `cloudflared tunnel --url http://localhost:3000`, then share the HTTPS URL it gives you.
-- **Or** serve HTTPS directly with a certificate:
-
-  ```bash
-  SSL_KEY=certs/key.pem SSL_CERT=certs/cert.pem npm start
-  ```
-
-### TURN server (optional)
-
-Calls connect directly between browsers using public STUN servers. That works on most networks. People behind strict corporate NATs or firewalls may need a TURN relay:
+Requires Node.js 20+.
 
 ```bash
-TURN_URL=turn:turn.example.com:3478 TURN_USERNAME=user TURN_CREDENTIAL=secret npm start
+npm install
+npm start      # http://localhost:3000
 ```
+
+Open a meeting link in two tabs to test a call with yourself. Camera and mic only work on `localhost` or HTTPS, so for other devices use your Railway URL. You can also serve HTTPS directly with `SSL_KEY=key.pem SSL_CERT=cert.pem npm start`.
 
 ## Configuration
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `PORT` | `3000` | HTTP(S) port |
+| `PORT` | `3000` | HTTP(S) port (Railway sets this automatically) |
 | `MAX_PEERS` | `8` | Max people per meeting (mesh calls get heavy beyond ~8) |
 | `SSL_KEY` / `SSL_CERT` | none | Paths to a key and certificate to serve HTTPS |
 | `TURN_URL` / `TURN_USERNAME` / `TURN_CREDENTIAL` | none | Optional TURN relay (comma-separate multiple URLs) |
@@ -70,7 +71,8 @@ TURN_URL=turn:turn.example.com:3478 TURN_USERNAME=user TURN_CREDENTIAL=secret np
 ## Project layout
 
 ```
-server.js            signaling server + routes (/new, /:roomId, /config)
+server.js            signaling server + routes (/new, /:roomId, /config, /health)
+railway.json         Railway build/deploy settings
 public/index.html    home page (new meeting / join with code)
 public/room.html     pre-join + meeting UI
 public/app.js        WebRTC, controls, chat, participants

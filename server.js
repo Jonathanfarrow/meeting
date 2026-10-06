@@ -45,7 +45,13 @@ function iceServers() {
   return servers;
 }
 
+// roomId -> Map(socketId -> participant info). Kept in memory, so run a
+// single instance (don't scale to multiple replicas).
+const rooms = new Map();
+
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/health', (req, res) => res.json({ ok: true, rooms: rooms.size }));
 
 app.get('/new', (req, res) => res.redirect(`/${makeRoomId()}`));
 
@@ -55,9 +61,6 @@ app.get('/:roomId', (req, res, next) => {
   if (!ROOM_ID_RE.test(req.params.roomId)) return next();
   res.sendFile(path.join(__dirname, 'public', 'room.html'));
 });
-
-// roomId -> Map(socketId -> participant info)
-const rooms = new Map();
 
 function clean(str, max) {
   return String(str ?? '').trim().slice(0, max);
@@ -127,6 +130,15 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('peer-left', { id: socket.id });
   });
 });
+
+// Railway (and most hosts) send SIGTERM on redeploy; close cleanly.
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.on(signal, () => {
+    io.close();
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref();
+  });
+}
 
 server.listen(PORT, () => {
   const scheme = server instanceof https.Server ? 'https' : 'http';
