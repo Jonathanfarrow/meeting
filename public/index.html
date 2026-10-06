@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meeting</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="home">
+    <header class="home-header">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <span>Meeting</span>
+      </div>
+      <div class="clock" id="clock"></div>
+    </header>
+
+    <main class="home-main">
+      <section class="hero">
+        <h1>Video calls and meetings for everyone</h1>
+        <p>Meet with anyone, right in your browser — and record the meeting straight to your computer.</p>
+
+        <div class="home-actions">
+          <a class="btn primary" href="/new">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM14 13h-3v3H9v-3H6v-2h3V8h2v3h3v2z"/></svg>
+            New meeting
+          </a>
+          <form id="join-form" class="join-form">
+            <input id="code" placeholder="Enter a code or link" autocomplete="off" aria-label="Meeting code or link" />
+            <button class="btn text" type="submit" id="join-btn" disabled>Join</button>
+          </form>
+        </div>
+        <hr />
+        <ul class="features">
+          <li><strong>HD video</strong> peer-to-peer between up to 8 people</li>
+          <li><strong>Screen sharing</strong> and in-meeting chat</li>
+          <li><strong>Record</strong> the whole meeting — saved as a video file to your Downloads</li>
+        </ul>
+      </section>
+    </main>
+
+    <script>
+      const code = document.getElementById('code');
+      const btn = document.getElementById('join-btn');
+      code.addEventListener('input', () => (btn.disabled = !code.value.trim()));
+      document.getElementById('join-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        let value = code.value.trim();
+        try {
+          value = new URL(value).pathname.split('/').filter(Boolean).pop() || '';
+        } catch {}
+        value = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (value) location.href = '/' + value;
+      });
+      const clock = document.getElementById('clock');
+      const tick = () =>
+        (clock.textContent = new Date().toLocaleString([], {
+          hour: 'numeric', minute: '2-digit', weekday: 'short', month: 'short', day: 'numeric',
+        }));
+      tick();
+      setInterval(tick, 10000);
+    </script>
+  </body>
+</html>

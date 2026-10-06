@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meeting</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="room">
+    <!-- Pre-join screen -->
+    <section id="prejoin" class="prejoin">
+      <div class="preview">
+        <video id="preview" autoplay muted playsinline></video>
+        <div id="preview-off" class="preview-off" hidden>Camera is off</div>
+        <div class="preview-controls">
+          <button id="pre-mic" class="round" title="Turn off microphone"></button>
+          <button id="pre-cam" class="round" title="Turn off camera"></button>
+        </div>
+      </div>
+      <div class="prejoin-side">
+        <h1>Ready to join?</h1>
+        <p class="muted" id="pre-code"></p>
+        <input id="name" placeholder="What's your name?" maxlength="40" autocomplete="name" />
+        <button id="join" class="btn primary wide" disabled>Join now</button>
+        <p id="pre-error" class="error" hidden></p>
+        <a class="muted small" href="/">← Back to home</a>
+      </div>
+    </section>
+
+    <!-- In-meeting screen -->
+    <section id="meeting" class="meeting" hidden>
+      <div id="rec-banner" class="rec-banner" hidden>
+        <span class="rec-dot"></span><span id="rec-text">Recording</span>
+      </div>
+      <div class="stage">
+        <div id="grid" class="grid"></div>
+        <aside id="panel" class="panel" hidden>
+          <header>
+            <h2 id="panel-title">In-call messages</h2>
+            <button id="panel-close" class="icon-btn" title="Close"></button>
+          </header>
+          <div id="chat-view" class="chat-view">
+            <p class="muted small notice">Messages can only be seen by people in the call and are deleted when the call ends.</p>
+            <div id="messages" class="messages"></div>
+            <form id="chat-form" class="chat-form">
+              <input id="chat-input" placeholder="Send a message" autocomplete="off" maxlength="2000" />
+              <button class="icon-btn" id="chat-send" title="Send"></button>
+            </form>
+          </div>
+          <div id="people-view" class="people-view" hidden>
+            <ul id="people"></ul>
+          </div>
+        </aside>
+      </div>
+      <footer class="controls">
+        <div class="controls-left">
+          <span id="time"></span><span class="sep">|</span><span id="code-label"></span>
+        </div>
+        <div class="controls-center">
+          <button id="btn-mic" class="round" title="Turn off microphone"></button>
+          <button id="btn-cam" class="round" title="Turn off camera"></button>
+          <button id="btn-share" class="round" title="Present now"></button>
+          <button id="btn-rec" class="round" title="Record meeting"></button>
+          <button id="btn-leave" class="round leave" title="Leave call"></button>
+        </div>
+        <div class="controls-right">
+          <button id="btn-copy" class="icon-btn" title="Copy meeting link"></button>
+          <button id="btn-people" class="icon-btn" title="People"><span class="badge" id="people-count">1</span></button>
+          <button id="btn-chat" class="icon-btn" title="Chat"><span class="dot" id="chat-dot" hidden></span></button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- Left screen -->
+    <section id="left" class="left-screen" hidden>
+      <h1>You left the meeting</h1>
+      <p class="muted" id="left-note"></p>
+      <div class="left-actions">
+        <button class="btn text" onclick="location.reload()">Rejoin</button>
+        <a class="btn primary" href="/">Return to home screen</a>
+      </div>
+    </section>
+
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/recorder.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
